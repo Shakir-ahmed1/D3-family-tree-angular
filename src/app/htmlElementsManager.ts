@@ -1,5 +1,3 @@
-            // @ts-ignore
-import * as d3 from "d3";
 import { Contributor, DrawableNode, FamilyNode, genericActionTypes, MemberPriviledge, SuggestableActions, SuggestEdits } from "./interfaces/node.interface";
 import { nodeCreationService } from "./services/node-creation-services";
 import { nodeManagmentService } from "./services/node-managment-service";
@@ -496,7 +494,7 @@ export class HtmlElementsManager {
                 const familyTreeForm = document.getElementById('familyTreeForm')
                 const formData = new FormData(familyTreeForm as HTMLFormElement);
                 const endpoint = localStorageManager.getItem('postEndpoint') as EndpointKey | null; // Cast to potential key type or null
-                            // @ts-ignore
+// @ts-ignore
                 const data: { [key: string]: string } = Object.fromEntries(formData.entries());
 
 
@@ -539,21 +537,21 @@ export class HtmlElementsManager {
             ['existing', 'new'].forEach(option => {
                 const opt = document.createElement('option');
                 opt.value = option;
-                opt.textContent = actionOptions[option as keyof typeof actionOptions].label[currentMembmerMode][node.data.gender as 'MALE' | 'FEMALE'];
+                opt.textContent = actionOptions[option as keyof typeof actionOptions].label[currentMembmerMode][node.data.gender];
                 select.appendChild(opt);
             });
 
             select.addEventListener('change', () => {
 
                 // Then cast:
-                const label = endpointFieldMapNew[actionKeys]?.[select.value as ValidSelectValue]?.label?.[currentMembmerMode]?.[node.data.gender as 'MALE' | 'FEMALE'];
+                const label = endpointFieldMapNew[actionKeys]?.[select.value as ValidSelectValue]?.label?.[currentMembmerMode]?.[node.data.gender];
                 const endpointLabel = document.getElementById('endpointLabel')
                 if (endpointLabel) endpointLabel.textContent = label ?? null;
                 localStorageManager.setItem('postEndpoint', endpointFieldMapNew[actionKeys]?.[select.value as ValidSelectValue]?.endpoint[currentMembmerMode])
                 generateFields(select.value as 'new' | 'existing')
             });
             dynamicFields?.appendChild(select);
-            const label = endpointFieldMapNew[actionKeys]?.['existing' as ValidSelectValue]?.label[currentMembmerMode][node.data.gender as 'MALE' | 'FEMALE'];
+            const label = endpointFieldMapNew[actionKeys]?.['existing' as ValidSelectValue]?.label[currentMembmerMode][node.data.gender];
             localStorageManager.setItem('postEndpoint', endpointFieldMapNew[actionKeys]['existing' as ValidSelectValue]?.endpoint[currentMembmerMode])
 
             const endpointLabel = document.getElementById('endpointLabel')
@@ -562,7 +560,7 @@ export class HtmlElementsManager {
             generateFields('existing'); // Default selection
         } else {
             const option = (actionOptions.new ? 'new' : 'existing') as 'new' | 'existing';
-            const label = endpointFieldMapNew[actionKeys][option]?.label[currentMembmerMode][node.data.gender as 'MALE' | 'FEMALE'];
+            const label = endpointFieldMapNew[actionKeys][option]?.label[currentMembmerMode][node.data.gender];
             const endpointLabel = document.getElementById('endpointLabel')
             if (endpointLabel) endpointLabel.textContent = label ?? null;
             localStorageManager.setItem('postEndpoint', endpointFieldMapNew[actionKeys][option]?.endpoint[currentMembmerMode])
@@ -830,7 +828,7 @@ export class HtmlElementsManager {
         SuggestDeleteButton.addEventListener('click', async (e) => {
             e.preventDefault()
             const formData = new FormData(familyTreeForm as HTMLFormElement);
-                        // @ts-ignore
+// @ts-ignore
             const deletionBody: { [key: string]: string } =  Object.fromEntries(formData.entries());
 
             if (input.value) {
@@ -894,7 +892,7 @@ export class HtmlElementsManager {
             e.preventDefault()
             const familyTreeForm = document.getElementById('familyTreeForm')
             const formData = new FormData(familyTreeForm as HTMLFormElement);
-                        // @ts-ignore
+// @ts-ignore
             const filteredData: { [key: string]: string } = Object.fromEntries(formData.entries());
 
             Object.keys(formData).forEach(key => {

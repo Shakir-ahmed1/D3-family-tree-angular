@@ -1,4 +1,3 @@
-            // @ts-ignore
 import * as d3 from "d3";
 import { HtmlElementsManager } from "./htmlElementsManager";
 import { CustomFlatData, DrawableNode, FamilyNode, genericActionTypes } from "./interfaces/node.interface";
@@ -346,7 +345,7 @@ export class FamilyTreeDrawer {
         });
         // Filp ancestors upside down
         this.anceNodes = this.anceTreeData?.descendants()
-            .map((node: { y: number; }) => {
+            .map(node => {
                 node.y = -node.y; // Flip Y-axis to move ancestors above the root
                 return node;
             }) as d3.HierarchyNode<DrawableNode>[];
@@ -387,7 +386,7 @@ export class FamilyTreeDrawer {
         });
         // Filp ancestors upside down
         this.parentNodes = this.parentTreeData?.descendants()
-            .map((node: { y: number; }) => {
+            .map(node => {
                 node.y = -node.y; // Flip Y-axis to move parentstors above the root
                 return node;
             }) as d3.HierarchyNode<DrawableNode>[];
@@ -491,10 +490,10 @@ export class FamilyTreeDrawer {
         this.familyTreeGroup.transition().duration(this.fadeInAnimationDurationEditMode).attr('transform', `translate(${translateX}, ${translateY})`);
     }
     private centerTree() {
-        this.minTreeX = d3.min(this.jointNode, (d: { x: any; }) => d.x) ?? 0;
-        this.maxTreeX = d3.max(this.jointNode, (d: { x: any; }) => d.x) ?? 0;
-        this.minTreeY = d3.min(this.jointNode, (d: { y: any; }) => d.y) ?? 0;
-        this.maxTreeY = d3.max(this.jointNode, (d: { y: any; }) => d.y) ?? 0;
+        this.minTreeX = d3.min(this.jointNode, d => d.x) ?? 0;
+        this.maxTreeX = d3.max(this.jointNode, d => d.x) ?? 0;
+        this.minTreeY = d3.min(this.jointNode, d => d.y) ?? 0;
+        this.maxTreeY = d3.max(this.jointNode, d => d.y) ?? 0;
         this.offSetX = - this.minTreeX;
         this.offSetY = - this.minTreeY;
         this.jointNode.forEach(item => {
@@ -503,10 +502,10 @@ export class FamilyTreeDrawer {
         })
     }
     private centerTreeEditMode() {
-        this.minTreeXEditMode = d3.min(this.jointNode, (d: { x: any; }) => d.x) ?? 0;
-        this.maxTreeXEditMode = d3.max(this.jointNode, (d: { x: any; }) => d.x) ?? 0;
-        this.minTreeYEditMode = d3.min(this.jointNode, (d: { y: any; }) => d.y) ?? 0;
-        this.maxTreeYEditMode = d3.max(this.jointNode, (d: { y: any; }) => d.y) ?? 0;
+        this.minTreeXEditMode = d3.min(this.jointNode, d => d.x) ?? 0;
+        this.maxTreeXEditMode = d3.max(this.jointNode, d => d.x) ?? 0;
+        this.minTreeYEditMode = d3.min(this.jointNode, d => d.y) ?? 0;
+        this.maxTreeYEditMode = d3.max(this.jointNode, d => d.y) ?? 0;
         this.offSetXEditMode = - this.minTreeXEditMode;
         this.offSetYEditMode = - this.minTreeYEditMode;
         this.jointNode.forEach(item => {
@@ -555,13 +554,13 @@ export class FamilyTreeDrawer {
         // 3. UPDATE (Transition existing lines)
         lines.transition()
             .duration(this.fadeInAnimationDuration)
-            .attr("x1", (d: { x: any; }) => d.x ?? 0)
-            .attr("y1", (d: { y: any; }) => d.y ?? 0)
-            .attr("x2", (d: { data: { target: any; }; }) => {
+            .attr("x1", d => d.x ?? 0)
+            .attr("y1", d => d.y ?? 0)
+            .attr("x2", d => {
                 const spouse = this.jointNode.find(n => n.data.id === d.data.target && n.data.type === 'child');
                 return spouse?.x ?? 0;
             })
-            .attr("y2", (d: { data: { target: any; }; }) => {
+            .attr("y2", d => {
                 const spouse = this.jointNode.find(n => n.data.id === d.data.target && n.data.type === 'child');
                 return spouse?.y ?? 0;
             })
@@ -572,13 +571,13 @@ export class FamilyTreeDrawer {
             .attr("stroke", this.colors.lineMarriage)
             .attr("stroke-width", 2 * this.scaleFactor)
             .attr("opacity", 0);
-        enter.attr("x1", (d: { x: any; }) => d.x ?? 0)
-            .attr("y1", (d: { y: any; }) => d.y ?? 0)
-            .attr("x2", (d: { data: { target: any; }; }) => {
+        enter.attr("x1", d => d.x ?? 0)
+            .attr("y1", d => d.y ?? 0)
+            .attr("x2", d => {
                 const spouse = this.jointNode.find(n => n.data.id === d.data.target && n.data.type === 'child');
                 return spouse?.x ?? 0;
             })
-            .attr("y2", (d: { data: { target: any; }; }) => {
+            .attr("y2", d => {
                 const spouse = this.jointNode.find(n => n.data.id === d.data.target && n.data.type === 'child');
                 return spouse?.y ?? 0;
             });
@@ -639,7 +638,7 @@ export class FamilyTreeDrawer {
         // 3. UPDATE (Transition existing paths)
         paths.transition()
             .duration(this.fadeInAnimationDuration)
-            .attr("d", (d: { data: { catag: string; mother: any; father: any; }; y: number | undefined; x: undefined; }) => {  // Update the 'd' attribute
+            .attr("d", d => {  // Update the 'd' attribute
 
                 if (d.data.catag === 'desc') {
                     let pathD = "";
@@ -697,7 +696,7 @@ export class FamilyTreeDrawer {
             .attr("stroke", this.colors.lineParentChild)
             .attr("stroke-width", 1.5 * this.scaleFactor)
             .attr("opacity", 0);
-        enter.attr("d", (d: { data: { catag: string; mother: any; father: any; }; y: number | undefined; x: undefined; }) => { // Set 'd' attribute for new paths
+        enter.attr("d", d => { // Set 'd' attribute for new paths
             if (d.data.catag === 'desc') {
                 let pathD = "";
                 if (d.data.mother && d.data.father) {
@@ -808,31 +807,31 @@ export class FamilyTreeDrawer {
         };
 
         const node = this.descendantsGroup.selectAll("g.node")
-            .data(this.jointNode.filter(d => d.data.type !== 'root'), (d: any) => {
+            .data(this.jointNode.filter(d => d.data.type !== 'root'), d => {
                 const nodeData = d as d3.HierarchyNode<DrawableNode>;
                 return nodeData.data.id
             });
         node.on('click', handleClick);
         node.selectAll(".node-circle")
-            .attr("fill", (d: unknown) => {
+            .attr("fill", d => {
                 return this.getCustomColor(d)
             });
         node.transition()
             .duration(this.fadeInAnimationDuration)
-            .attr("transform", (d: { x: any; y: any; }) => `translate(${d.x},${d.y}) scale(${this.scaleFactor})`)
+            .attr("transform", d => `translate(${d.x},${d.y}) scale(${this.scaleFactor})`)
             .attr('opacity', 1);
 
         const enter = node.enter().append("g")
             .attr("class", "node")
-            .attr("transform", (_d: any) => `translate(${(rootNode?.x as number) - this.offSetX},${(rootNode?.y as number)}) scale(${this.scaleFactor})`)
+            .attr("transform", _d => `translate(${(rootNode?.x as number) - this.offSetX},${(rootNode?.y as number)}) scale(${this.scaleFactor})`)
             .attr('opacity', 0)
             .on('click', handleClick);
 
        enter.append("circle")
             .attr("r", this.NODE_RADIUS)
             .attr("stroke", this.colors.circlularStroke)
-            .attr("stroke-width", (d: { data: { id: number | undefined; }; }) => (d.data.id === this.rootNodeId ? strokeWidth * 5 : strokeWidth))
-            .attr("fill", (d: any) => this.getNodeColor(d as d3.HierarchyNode<DrawableNode>));
+            .attr("stroke-width", d => (d.data.id === this.rootNodeId ? strokeWidth * 5 : strokeWidth))
+            .attr("fill", d => this.getNodeColor(d as d3.HierarchyNode<DrawableNode>));
 
         // console.log("old root", this.oldRootNodeId, this.rootNodeId);
         this.descendantsGroup.selectAll<SVGCircleElement, unknown>("circle") // Select specific circles
@@ -848,7 +847,7 @@ export class FamilyTreeDrawer {
         enter.append("text")
             .attr("dy", this.NODE_RADIUS + 20)
             .attr("text-anchor", "middle")
-            .text((d: { data: { name: any; }; }) => d.data.name);
+            .text(d => d.data.name);
 
         this.defaultNodePicture(enter);
         this.appendActionCircles(enter);
@@ -857,7 +856,7 @@ export class FamilyTreeDrawer {
 
             .duration(this.fadeInAnimationDuration)
             .attr('opacity', 1)
-            .attr("transform", (d: { x: any; y: any; }) => `translate(${d.x},${d.y}) scale(${this.scaleFactor})`);
+            .attr("transform", d => `translate(${d.x},${d.y}) scale(${this.scaleFactor})`);
 
         if (this.oldRootNodeId && this.oldJointData) {
             const foundOldRoot = this.jointNode.find(item => item.data.id === this.oldRootNodeId);
@@ -865,7 +864,7 @@ export class FamilyTreeDrawer {
 
 
                 .duration(this.fadeOutAnimationDuration)
-                .attr("transform", (d: any) => {
+                .attr("transform", d => {
                     const nodeData = d as d3.HierarchyNode<DrawableNode>; // Cast to the correct type
 
                     return foundOldRoot ? `translate(${foundOldRoot.x},${foundOldRoot.y}) scale(${this.scaleFactor})` : `translate(${nodeData.x},${nodeData.y}) scale(${this.scaleFactor})`;
@@ -930,13 +929,13 @@ export class FamilyTreeDrawer {
         // 3. UPDATE (Transition existing lines)
         lines.transition()
             .duration(this.fadeInAnimationDurationEditMode)
-            .attr("x1", (d: { x: any; }) => d.x ?? 0)
-            .attr("y1", (d: { y: any; }) => d.y ?? 0)
-            .attr("x2", (d: { data: { target: any; }; }) => {
+            .attr("x1", d => d.x ?? 0)
+            .attr("y1", d => d.y ?? 0)
+            .attr("x2", d => {
                 const spouse = this.jointNode.find(n => n.data.id === d.data.target);
                 return spouse?.x ?? 0;
             })
-            .attr("y2", (d: { data: { target: any; }; }) => {
+            .attr("y2", d => {
                 const spouse = this.jointNode.find(n => n.data.id === d.data.target);
                 return spouse?.y ?? 0;
             })
@@ -947,13 +946,13 @@ export class FamilyTreeDrawer {
             .attr("stroke", this.colors.lineMarriage)
             .attr("stroke-width", 2 * this.scaleFactor)
             .attr("opacity", 0);
-        enter.attr("x1", (d: { x: any; }) => d.x ?? 0)
-            .attr("y1", (d: { y: any; }) => d.y ?? 0)
-            .attr("x2", (d: { data: { target: any; }; }) => {
+        enter.attr("x1", d => d.x ?? 0)
+            .attr("y1", d => d.y ?? 0)
+            .attr("x2", d => {
                 const spouse = this.jointNode.find(n => n.data.id === d.data.target && n.data.type === 'child');
                 return spouse?.x ?? 0;
             })
-            .attr("y2", (d: { data: { target: any; }; }) => {
+            .attr("y2", d => {
                 const spouse = this.jointNode.find(n => n.data.id === d.data.target && n.data.type === 'child');
                 return spouse?.y ?? 0;
             });
@@ -994,7 +993,7 @@ export class FamilyTreeDrawer {
     drawDescParentChildLineEditMode() {
         // 1. DATA JOIN (Key by a combination of parent and child IDs)
         const paths = this.descendantsGroupEditMode.selectAll("path.child-link")
-            .data(this.jointNode.filter(d => d.data.type === "child" || d.data.type === "suggest"), (d: any) => {
+            .data(this.jointNode.filter(d => d.data.type === "child" || d.data.type === "suggest"), d => {
                 let key = "";
                 const nodeData = d as d3.HierarchyNode<DrawableNode>; // Cast to the correct type
 
@@ -1019,7 +1018,7 @@ export class FamilyTreeDrawer {
         // 3. UPDATE (Transition existing paths)
         paths.transition()
             .duration(this.fadeInAnimationDurationEditMode)
-            .attr("d", (d: { data: { catag: string; mother: any; father: any; source: any; }; y: number | undefined; x: undefined; }) => {  // Update the 'd' attribute
+            .attr("d", d => {  // Update the 'd' attribute
                 if (d.data.catag === 'editDesc') {
                     let pathD = "";
                     if (d.data.mother && d.data.father) {
@@ -1093,7 +1092,7 @@ export class FamilyTreeDrawer {
             .attr("stroke", this.colors.lineParentChild)
             .attr("stroke-width", 1.5 * this.scaleFactor)
             .attr("opacity", 0);
-        enter.attr("d", (d: { data: { catag: string; mother: any; father: any; source: any; }; y: number | undefined; x: undefined; }) => { // Set 'd' attribute for new paths
+        enter.attr("d", d => { // Set 'd' attribute for new paths
             if (d.data.catag === 'editDesc') {
                 let pathD = "";
                 if (d.data.mother && d.data.father) {
@@ -1178,31 +1177,31 @@ export class FamilyTreeDrawer {
 
     updateNodesNameText() {
         const node = this.descendantsGroupEditMode.selectAll("g.node")
-            .data(this.jointNode.filter(d => d.data.type !== 'root'), (d: any) => {
+            .data(this.jointNode.filter(d => d.data.type !== 'root'), d => {
                 const nodeData = d as d3.HierarchyNode<DrawableNode>; // Cast to the correct type
                 return nodeData.data.id
             });
         node.selectAll("text[dy='60'][text-anchor='middle']")
-            .filter((d: any) => {
+            .filter(d => {
                 const nodeData = d as d3.HierarchyNode<DrawableNode>; // Cast to the correct type
                 return nodeData.data.id > 0 && !['suggestDesc', 'suggestAnce'].includes(nodeData.data.catag as string)
             })
-            .text((d: any) => {
+            .text(d => {
                 const nodeData = d as d3.HierarchyNode<DrawableNode>; // Cast to the correct type
                 return this.nodeManager.getNode(nodeData.data.id).name
             });
-        node.selectAll("text[dy='60'][text-anchor='middle']").filter((d: any) => {
+        node.selectAll("text[dy='60'][text-anchor='middle']").filter(d => {
             const nodeData = d as d3.HierarchyNode<DrawableNode>; // Cast to the correct type
             return nodeData.data.id > 0 && !['suggestDesc', 'suggestAnce']
                 .includes(nodeData.data.catag as string)
         })
-            .text((d: any) => {
+            .text(d => {
                 const nodeData = d as d3.HierarchyNode<DrawableNode>
                 return this.nodeManager.getNode(nodeData.data.id).name
             });
 
         node.selectAll(".node-circle")
-            .attr("fill", (d: unknown) => {
+            .attr("fill", d => {
                 return this.getCustomColor(d)
             });
 
@@ -1238,36 +1237,36 @@ export class FamilyTreeDrawer {
         }
 
         const node = this.descendantsGroupEditMode.selectAll("g.node")
-            .data(this.jointNode.filter(d => d.data.type !== 'root'), (d: any) => {
+            .data(this.jointNode.filter(d => d.data.type !== 'root'), d => {
                 const nodeData = d as d3.HierarchyNode<DrawableNode>; // Cast to the correct type
                 return nodeData.data.id
             });
         node.selectAll(".node-circle")
-            .attr("fill", (d: unknown) => {
+            .attr("fill", d => {
                 return this.getCustomColor(d)
             });
         node.transition().duration(this.fadeInAnimationDurationEditMode)
-            .attr("transform", (d: { x: any; y: any; }) => `translate(${d.x},${d.y}) scale(${this.scaleFactorEditMode})`)
+            .attr("transform", d => `translate(${d.x},${d.y}) scale(${this.scaleFactorEditMode})`)
             .attr('opacity', 1);
 
         const foundCircles = node.selectAll('.node-circle')
         foundCircles.transition()
             .duration(this.fadeInAnimationDurationEditMode)
-            .attr('fill', (d: unknown) => this.getCustomColor(d)); // Update existing node colors
+            .attr('fill', d => this.getCustomColor(d)); // Update existing node colors
 
         node.select(".dynamic-color-nodes")
             .transition()
-            .attr("fill", (d: unknown) => {
+            .attr("fill", d => {
                 const color = this.getCustomColor(d)
                 return color;
             })
 
         node.selectAll("text[dy='60'][text-anchor='middle']")
-            .filter((d: any) => {
+            .filter(d => {
                 const nodeData = d as d3.HierarchyNode<DrawableNode>; // Cast to the correct type
                 return nodeData.data.id > 0 && !['suggestDesc', 'suggestAnce'].includes(nodeData.data.catag as string)
             })
-            .text((d: any) => {
+            .text(d => {
                 const nodeData = d as d3.HierarchyNode<DrawableNode>; // Cast to the correct type
                 return this.nodeManager.getNode(nodeData.data.id).name
             });
@@ -1275,21 +1274,21 @@ export class FamilyTreeDrawer {
 
         const enter = node.enter().append("g")
             .attr("class", "node")
-            .attr("transform", (_d: any) => `translate(${rootNode?.x as number - this.offSetXEditMode},${rootNode?.y}) scale(${this.scaleFactorEditMode})`)
+            .attr("transform", _d => `translate(${rootNode?.x as number - this.offSetXEditMode},${rootNode?.y}) scale(${this.scaleFactorEditMode})`)
             .attr('opacity', 0)
             .on('click', handleClick);
 
         enter.append("circle")
             .attr("r", this.NODE_RADIUS)
             .attr("stroke", this.colors.circlularStroke)
-            .attr("stroke-width", (d: { data: { id: number | undefined; }; }) => (d.data.id === this.rootNodeId ? strokeWidth * 5 : strokeWidth))
-            .attr("fill", (d: any) => this.getNodeColor(d as d3.HierarchyNode<DrawableNode>)); // Set initial node colors
+            .attr("stroke-width", d => (d.data.id === this.rootNodeId ? strokeWidth * 5 : strokeWidth))
+            .attr("fill", d => this.getNodeColor(d as d3.HierarchyNode<DrawableNode>)); // Set initial node colors
 
         this.descendantsGroupEditMode.selectAll("circle")
             .transition()
             .duration(300)
             .ease(d3.easeLinear)
-            .attr("stroke-width", (d: any) => {
+            .attr("stroke-width", d => {
                 const nodeData = d as d3.HierarchyNode<DrawableNode>; // Cast to the correct type
                 return nodeData.data.id === this.rootNodeId ? strokeWidth * 5 : strokeWidth
             });
@@ -1297,7 +1296,7 @@ export class FamilyTreeDrawer {
         enter.append("text")
             .attr("dy", this.NODE_RADIUS + 20)
             .attr("text-anchor", "middle")
-            .text((d: { data: { name: any; }; }) => d.data.name);
+            .text(d => d.data.name);
 
         this.defaultNodePictureEditMode(enter);
         this.appendActionCircles(enter);
@@ -1305,13 +1304,13 @@ export class FamilyTreeDrawer {
         enter.transition()
             .duration(this.fadeInAnimationDurationEditMode)
             .attr('opacity', 1)
-            .attr("transform", (d: { x: any; y: any; }) => `translate(${d.x},${d.y}) scale(${this.scaleFactorEditMode})`);
+            .attr("transform", d => `translate(${d.x},${d.y}) scale(${this.scaleFactorEditMode})`);
 
         if (this.oldCurrentEditModeNodeId && this.oldJointData) {
             const foundOldRoot = this.jointNode.find(item => item.data.id === this.oldCurrentEditModeNodeId);
             node.exit().transition()
                 .duration(this.fadeOutAnimationDurationEditMode)
-                .attr("transform", (d: any) => {
+                .attr("transform", d => {
                     const nodeData = d as d3.HierarchyNode<DrawableNode>; // Cast to the correct type
 
                     return foundOldRoot ? `translate(${foundOldRoot.x},${foundOldRoot.y}) scale(${this.scaleFactorEditMode})` : `translate(${nodeData.x},${nodeData.y}) scale(${this.scaleFactorEditMode})`;
@@ -1414,7 +1413,7 @@ export class FamilyTreeDrawer {
         group.append("circle")
             .attr('class', 'node-circle')
             .attr("r", outerRadius)
-            .attr("fill", (d: any) => this.getNodeColor(d));
+            .attr("fill", d => this.getNodeColor(d));
 
         // Inner Circle (Cutout)
         group.append("circle")
@@ -1435,9 +1434,8 @@ export class FamilyTreeDrawer {
             .attr("fill", cutoutColor);
 
         // Profile Picture: Fetch asynchronously
-        group.each(function (d: { data: { id: any; }; }) {
+        group.each(function (d) {
             const nodeId = d.data.id;
-            // @ts-ignore
             const container = d3.select(this);
 
             fetchNodeImage(nodeId, token).then(imageUrl => {
@@ -1479,7 +1477,7 @@ export class FamilyTreeDrawer {
         const centerY = height / 2;
 
 
-        svg.each((d: d3.HierarchyNode<DrawableNode>, i: number, nodes: any[]) => {
+        svg.each((d: d3.HierarchyNode<DrawableNode>, i: number, nodes) => {
             if (!nodes[i]) return;
             const nodeGroup = d3.select(nodes[i])
                 .append("g")
@@ -1493,7 +1491,7 @@ export class FamilyTreeDrawer {
                 nodeGroup.append("circle")
                     .attr('class', 'node-circle')
                     .attr("r", outerRadius)
-                    .attr("fill", (d: unknown) => this.getCustomColor(d));
+                    .attr("fill", d => this.getCustomColor(d));
 
                 nodeGroup.append("circle")
                     .attr("r", innerRadius)
@@ -1538,7 +1536,7 @@ export class FamilyTreeDrawer {
                 nodeGroup.append("circle")
                     .attr("r", outerRadius)
                     .attr("fill", this.colors.editNodeBackground)
-                    .attr("stroke", (d: any) => this.getNodeColor(d as d3.HierarchyNode<DrawableNode>))
+                    .attr("stroke", d => this.getNodeColor(d as d3.HierarchyNode<DrawableNode>))
                     .attr("stroke-width", 2);
 
                 // Plus icon
@@ -1553,7 +1551,7 @@ export class FamilyTreeDrawer {
 
                 iconGroup.append("path")
                     .attr("d", "M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z")
-                    .attr("fill", (d: any) => this.getNodeColor(d as d3.HierarchyNode<DrawableNode>))
+                    .attr("fill", d => this.getNodeColor(d as d3.HierarchyNode<DrawableNode>))
                     .attr("transform", "translate(-12,-12)");
             }
         });
@@ -1604,23 +1602,23 @@ export class FamilyTreeDrawer {
         const spacing = 12; // Spacing between circles
 
         // Append the circle only if the node type is 'suggest'
-        const suggestGroup = actionGroup.filter((d: { data: { mode: string; }; }) => this.nodeManager.canContribute() && d.data.mode === 'node');
+        const suggestGroup = actionGroup.filter(d => this.nodeManager.canContribute() && d.data.mode === 'node');
 
         // Circle (background)
         suggestGroup.append("circle")
             .attr("r", iconSize)
             .attr("cx", iconOffset - this.NODE_RADIUS + 5 + 2 * spacing)
             .attr("cy", -iconOffset)
-            .attr("fill", (d: any) => this.actionCircleColor(d)) // Gray background
+            .attr("fill", d => this.actionCircleColor(d)) // Gray background
             .style("cursor", "pointer")
-            .on("click", (_event: any, d: { data: { id: number | undefined; }; }) => {
+            .on("click", (_event, d) => {
 
                 this.toggleModes(d.data.id, 'edit')
             });
 
         // Exclamation Mark (!)
         suggestGroup.append("text")
-            .text((d: any) => this.actionIcon(d as d3.HierarchyNode<DrawableNode>))
+            .text(d => this.actionIcon(d as d3.HierarchyNode<DrawableNode>))
             .attr("x", iconOffset - this.NODE_RADIUS + 5 + 2 * spacing)
             .attr("y", -iconOffset + (iconSize / 5)) // Adjust to center text
             .attr("text-anchor", "middle") // Center align
@@ -1635,10 +1633,10 @@ export class FamilyTreeDrawer {
 
         this.descRoot = d3.hierarchy<DrawableNode>(desc);
         this.descTreeData = this.descTreeLayout(this.descRoot);
-        this.descNodes = this.descTreeData.descendants().filter((item: { data: { id: number; }; }) => item.data.id !== 0);
+        this.descNodes = this.descTreeData.descendants().filter(item => item.data.id !== 0);
         this.anceRoot = d3.hierarchy<DrawableNode>(ance);
         this.anceTreeData = this.anceTreeLayout(this.anceRoot);
-        this.anceNodes = this.anceTreeData.descendants().filter((item: { data: { id: number; }; }) => item.data.id !== 0);
+        this.anceNodes = this.anceTreeData.descendants().filter(item => item.data.id !== 0);
 
         // this.renewTreeDataEditMode(desc, ance)
     }
@@ -1646,10 +1644,10 @@ export class FamilyTreeDrawer {
         this.childRoot = d3.hierarchy<DrawableNode>(child);
         this.childTreeData = this.childTreeLayout(this.childRoot);
 
-        this.childNodes = this.childTreeData.descendants().filter((item: { data: { type: string; }; }) => item.data.type !== 'root');
+        this.childNodes = this.childTreeData.descendants().filter(item => item.data.type !== 'root');
         this.parentRoot = d3.hierarchy<DrawableNode>(parent);
         this.parentTreeData = this.parentTreeLayout(this.parentRoot);
-        this.parentNodes = this.parentTreeData.descendants().filter((item: { data: { type: string; }; }) => item.data.type !== 'root');
+        this.parentNodes = this.parentTreeData.descendants().filter(item => item.data.type !== 'root');
 
     }
     pushRootHistory() {
