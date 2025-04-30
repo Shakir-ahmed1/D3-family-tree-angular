@@ -1,0 +1,16 @@
+<div class="family-tree-container">
+    <div #treeContainer id="treeContainer" class="tree-container"></div>
+
+    <div class="controls">
+        <button (click)="onModeToggle()" class="mode-button">{{ modeType }}</button>
+    </div>
+
+    <div class="tabs">
+        <button (click)="onTabClick('details')" class="tab-button" [class.active]="activeTab === 'details'">
+            Details
+        </button>
+        <button (click)="onTabClick('images')" class="tab-button" [class.active]="activeTab === 'images'">
+            Images
+        </button>
+    </div>
+</div>
