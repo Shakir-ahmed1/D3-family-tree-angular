@@ -7,7 +7,7 @@ import { DataManager } from '../services/data-manager';
 @Component({
   selector: 'app-root',
   standalone: true,
-  // imports: [],
+  imports: [],
   templateUrl: './family-tree.component.html',
   styleUrl: './family-tree.component.scss'
 })
@@ -49,3 +49,4 @@ export class FamilyTreeComponent implements AfterViewInit {
     }
   }
 }
+
