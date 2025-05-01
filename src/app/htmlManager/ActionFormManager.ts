@@ -1,3 +1,4 @@
+import { Renderer2, ElementRef } from '@angular/core';
 import { FamilyTreeDrawer } from "../FamilyTreeDrawer";
 import { genericActionTypes, DrawableNode } from "../interfaces/node.interface";
 import { DataManager } from "../services/data-manager";
@@ -13,6 +14,8 @@ export class ActionFormManager {
     private nodeManager: DataManager;
     private familyTreeId: number;
     private treeDrawer: FamilyTreeDrawer;
+    private renderer: Renderer2;
+    private elementRef: ElementRef;
     private relationType = [
         { id: 'UNKNOWN', name: 'UNKNOWN' },
         { id: 'EX', name: 'EX' },
@@ -20,22 +23,35 @@ export class ActionFormManager {
         { id: 'MAIN', name: 'MAIN' },
     ];
 
-    constructor(htmlElementsManager: HtmlElementsManager, nodeManager: DataManager, familyTreeId: number, treeDrawer: FamilyTreeDrawer) {
+    constructor(
+        htmlElementsManager: HtmlElementsManager,
+        nodeManager: DataManager,
+        familyTreeId: number,
+        treeDrawer: FamilyTreeDrawer,
+        renderer: Renderer2,
+        elementRef: ElementRef
+    ) {
         this.htmlElementsManager = htmlElementsManager;
         this.nodeManager = nodeManager;
         this.familyTreeId = familyTreeId;
         this.treeDrawer = treeDrawer;
+        this.renderer = renderer;
+        this.elementRef = elementRef;
     }
 
     setActionTypeLabel(actionType: genericActionTypes, node: d3.HierarchyNode<DrawableNode>, currentNodeId: number) {
         this.htmlElementsManager.setRootNodeId(currentNodeId);
         const memberPriviledge = this.nodeManager.memberPriviledge(this.familyTreeId, currentNodeId);
         const currentMemberMode = (memberPriviledge === 'create' || memberPriviledge === 'only-create') ? 'create' : 'suggest';
-        const dynamicFields = document.getElementById('dynamicFields');
+        const dynamicFields = this.elementRef.nativeElement.querySelector('#dynamicFields');
 
-        if (dynamicFields) dynamicFields.innerHTML = '';
-        const hoverEffectTest = hoverEffect(this.treeDrawer.createPopUp, currentNodeId);
-        dynamicFields?.appendChild(hoverEffectTest);
+        if (dynamicFields) {
+            this.renderer.setProperty(dynamicFields, 'innerHTML', '');
+        }
+        const hoverEffectTest = hoverEffect(this.treeDrawer.createPopUp, currentNodeId, this.renderer, this.elementRef);
+        if (dynamicFields && hoverEffectTest) {
+            this.renderer.appendChild(dynamicFields, hoverEffectTest);
+        }
 
         const endpointFieldMapNew = {
             addParent: {
@@ -81,96 +97,105 @@ export class ActionFormManager {
         };
 
         const generateFields = (option: 'new' | 'existing') => {
-            const fields = actionOptions[option]?.fields;
-            dynamicFields?.querySelectorAll('.dynamic-input').forEach(el => el.remove());
+            if (!dynamicFields) return;
 
+            // Remove existing dynamic inputs
+            const existingInputs = dynamicFields.querySelectorAll('.dynamic-input');
+            existingInputs.forEach((el: any) => this.renderer.removeChild(dynamicFields, el));
+
+            // Add reason input for suggest mode
             if (currentMemberMode === 'suggest') {
-                const input = document.createElement('input');
-                input.type = 'text';
-                input.id = 'reason';
-                input.name = 'reason';
-                input.placeholder = 'Reason';
-                input.required = false;
-                input.className = 'dynamic-input';
-                dynamicFields?.appendChild(input);
+                const input = this.renderer.createElement('input');
+                this.renderer.setAttribute(input, 'type', 'text');
+                this.renderer.setAttribute(input, 'id', 'reason');
+                this.renderer.setAttribute(input, 'name', 'reason');
+                this.renderer.setAttribute(input, 'placeholder', 'Reason');
+                this.renderer.setProperty(input, 'required', false);
+                this.renderer.addClass(input, 'dynamic-input');
+                this.renderer.appendChild(dynamicFields, input);
             }
 
+            const fields = actionOptions[option]?.fields;
             fields?.forEach((field: string | null) => {
                 if (field?.includes('Data')) {
-                    const h2 = document.createElement('h2');
-                    h2.textContent = field;
-                    h2.className = 'dynamic-input';
-                    dynamicFields?.appendChild(h2);
+                    const h2 = this.renderer.createElement('h2');
+                    this.renderer.setProperty(h2, 'textContent', field);
+                    this.renderer.addClass(h2, 'dynamic-input');
+                    this.renderer.appendChild(dynamicFields, h2);
 
                     ['name', 'gender', 'title', 'phone', 'address', 'nickName', 'birthDate', 'deathDate'].forEach(name => {
-                        const input = document.createElement('input');
-                        input.type = name.includes('Date') ? 'date' : 'text';
-                        input.id = name;
-                        input.name = name;
-                        input.placeholder = name.replace(/([A-Z])/g, ' $1').trim();
-                        input.required = name === 'name' || name === 'gender';
-                        input.className = 'dynamic-input';
-                        if (name === 'gender') input.value = node.data.gender;
-                        dynamicFields?.appendChild(input);
+                        const input = this.renderer.createElement('input');
+                        this.renderer.setAttribute(input, 'type', name.includes('Date') ? 'date' : 'text');
+                        this.renderer.setAttribute(input, 'id', name);
+                        this.renderer.setAttribute(input, 'name', name);
+                        this.renderer.setAttribute(input, 'placeholder', name.replace(/([A-Z])/g, ' $1').trim());
+                        this.renderer.setProperty(input, 'required', name === 'name' || name === 'gender');
+                        this.renderer.addClass(input, 'dynamic-input');
+                        if (name === 'gender') {
+                            this.renderer.setProperty(input, 'value', node.data.gender);
+                        }
+                        this.renderer.appendChild(dynamicFields, input);
                     });
                 } else if (field === 'targetNodeId' && actionType === genericActionTypes.addParent) {
                     nodeManagmentService.fetchAllowedParents(this.familyTreeId, currentNodeId, node.data.gender)
                         .then(item => {
-                            const dropdown = createDropdown(item, 'targetNodeId', 'Select Existing parent Node', 'Couldn\'t find a possible parent');
-                            const referenceElement = document.getElementById('actionOptionSelect');
+                            const dropdown = createDropdown(item, 'targetNodeId', 'Select Existing parent Node', 'Couldn\'t find a possible parent', this.renderer);
+                            const referenceElement = this.elementRef.nativeElement.querySelector('#actionOptionSelect');
                             if (referenceElement && referenceElement.parentNode === dynamicFields) {
-                                dynamicFields?.insertBefore(dropdown, referenceElement.nextSibling || null);
+                                this.renderer.insertBefore(dynamicFields, dropdown, referenceElement.nextSibling || null);
                             } else {
-                                dynamicFields?.appendChild(dropdown);
+                                this.renderer.appendChild(dynamicFields, dropdown);
                             }
                         })
                         .catch(error => console.error("Error fetching marriable nodes:", error));
                 } else if (field === 'targetNodeId' && actionType === genericActionTypes.addPartner) {
                     nodeManagmentService.fetchMarriableNodes(this.familyTreeId, currentNodeId)
                         .then(item => {
-                            const dropdown = createDropdown(item, 'targetNodeId', 'Select Existing Node', 'Couldn\'t find a possible pair');
-                            const referenceElement = document.getElementById('actionOptionSelect');
+                            const dropdown = createDropdown(item, 'targetNodeId', 'Select Existing Node', 'Couldn\'t find a possible pair', this.renderer);
+                            const referenceElement = this.elementRef.nativeElement.querySelector('#actionOptionSelect');
                             if (referenceElement && referenceElement.parentNode === dynamicFields) {
-                                dynamicFields?.insertBefore(dropdown, referenceElement.nextSibling || null);
+                                this.renderer.insertBefore(dynamicFields, dropdown, referenceElement.nextSibling || null);
                             } else {
-                                dynamicFields?.appendChild(dropdown);
+                                this.renderer.appendChild(dynamicFields, dropdown);
                             }
                         })
                         .catch(error => console.error("Error fetching marriable nodes:", error));
                 } else if (field === 'partnershipType') {
-                    dynamicFields?.appendChild(createDropdown(this.relationType, 'partnershipType', 'select relationship Status', 'Unknown Error Occurred'));
+                    const dropdown = createDropdown(this.relationType, 'partnershipType', 'select relationship Status', 'Unknown Error Occurred', this.renderer);
+                    this.renderer.appendChild(dynamicFields, dropdown);
                 } else if (field?.endsWith('Id')) {
-                    const input = document.createElement('input');
-                    input.type = 'number';
-                    input.name = field;
-                    input.placeholder = field;
-                    input.required = true;
-                    input.className = 'dynamic-input';
+                    const input = this.renderer.createElement('input');
+                    this.renderer.setAttribute(input, 'type', 'number');
+                    this.renderer.setAttribute(input, 'name', field);
+                    this.renderer.setAttribute(input, 'placeholder', field);
+                    this.renderer.setProperty(input, 'required', true);
+                    this.renderer.addClass(input, 'dynamic-input');
                     if (actionType === 'addChildOfTwoParents' && field === 'targetNodeId') {
                         const partnerId = node.data.motherId === currentNodeId ? node.data.fatherId : node.data.motherId;
-                        if (input) input.value = `${partnerId}`;
-                        const p = document.createElement('p');
+                        if (input) this.renderer.setProperty(input, 'value', `${partnerId}`);
+                        const p = this.renderer.createElement('p');
                         const partnerNode = this.nodeManager.getNode(partnerId as number);
-                        p.textContent = `Partner: ${partnerNode.name}`;
-                        dynamicFields?.appendChild(p);
+                        this.renderer.setProperty(p, 'textContent', `Partner: ${partnerNode.name}`);
+                        this.renderer.appendChild(dynamicFields, p);
                     }
-                    dynamicFields?.appendChild(input);
+                    this.renderer.appendChild(dynamicFields, input);
                 } else {
-                    const input = document.createElement('input');
-                    input.type = 'text';
-                    input.name = field as string;
-                    input.placeholder = field as string;
-                    input.required = true;
-                    input.className = 'dynamic-input';
-                    dynamicFields?.appendChild(input);
+                    const input = this.renderer.createElement('input');
+                    this.renderer.setAttribute(input, 'type', 'text');
+                    this.renderer.setAttribute(input, 'name', field as string);
+                    this.renderer.setAttribute(input, 'placeholder', field as string);
+                    this.renderer.setProperty(input, 'required', true);
+                    this.renderer.addClass(input, 'dynamic-input');
+                    this.renderer.appendChild(dynamicFields, input);
                 }
             });
 
-            const saveButton = document.createElement('button');
-            saveButton.textContent = 'Save';
-            saveButton.id = 'allowed-save';
-            saveButton.className = 'dynamic-input';
-            saveButton.addEventListener('click', async (e) => {
+            const saveButton = this.renderer.createElement('button');
+            this.renderer.setProperty(saveButton, 'textContent', 'Save');
+            this.renderer.setAttribute(saveButton, 'id', 'allowed-save');
+            this.renderer.addClass(saveButton, 'dynamic-input');
+            // @ts-ignore
+            this.renderer.listen(saveButton, 'click', async (e) => {
                 const endpointServiceMap = {
                     addNewParent: nodeCreationService.addNewParent,
                     addExistingParent: nodeCreationService.addExistingParent,
@@ -190,11 +215,11 @@ export class ActionFormManager {
                 type EndpointKey = keyof typeof endpointServiceMap;
 
                 e.preventDefault();
-                const familyTreeForm = document.getElementById('familyTreeForm');
+                const familyTreeForm = this.elementRef.nativeElement.querySelector('#familyTreeForm');
                 const formData = new FormData(familyTreeForm as HTMLFormElement);
                 const endpoint = localStorageManager.getItem('postEndpoint') as EndpointKey | null;
                 // @ts-ignore
-                const data: { [key: string]: string; } = Object.fromEntries(formData.entries());
+                const data: { [key: string]: string } = Object.fromEntries(formData.entries());
 
                 if (endpoint && endpoint in endpointServiceMap) {
                     try {
@@ -213,7 +238,7 @@ export class ActionFormManager {
                 const memberPriviledge = this.nodeManager.memberPriviledge(this.familyTreeId, currentNodeId);
                 this.htmlElementsManager.createViewMode(currentData, memberPriviledge);
             });
-            dynamicFields?.appendChild(saveButton);
+            this.renderer.appendChild(dynamicFields, saveButton);
         };
 
         const actionOptions = endpointFieldMapNew[actionType as keyof typeof endpointFieldMapNew];
@@ -223,33 +248,39 @@ export class ActionFormManager {
         if (!actionOptions) return;
 
         if (actionOptions.existing && actionOptions.new) {
-            const select = document.createElement('select');
-            select.id = 'actionOptionSelect';
+            const select = this.renderer.createElement('select');
+            this.renderer.setAttribute(select, 'id', 'actionOptionSelect');
             ['existing', 'new'].forEach(option => {
-                const opt = document.createElement('option');
-                opt.value = option;
-                opt.textContent = actionOptions[option as keyof typeof actionOptions].label[currentMemberMode][node.data.gender];
-                select.appendChild(opt);
+                const opt = this.renderer.createElement('option');
+                this.renderer.setProperty(opt, 'value', option);
+                this.renderer.setProperty(opt, 'textContent', actionOptions[option as keyof typeof actionOptions].label[currentMemberMode][node.data.gender]);
+                this.renderer.appendChild(select, opt);
             });
 
-            select.addEventListener('change', () => {
+            this.renderer.listen(select, 'change', () => {
                 const label = endpointFieldMapNew[actionKeys]?.[select.value as ValidSelectValue]?.label?.[currentMemberMode]?.[node.data.gender];
-                const endpointLabel = document.getElementById('endpointLabel');
-                if (endpointLabel) endpointLabel.textContent = label ?? null;
+                const endpointLabel = this.elementRef.nativeElement.querySelector('#endpointLabel');
+                if (endpointLabel) {
+                    this.renderer.setProperty(endpointLabel, 'textContent', label ?? null);
+                }
                 localStorageManager.setItem('postEndpoint', endpointFieldMapNew[actionKeys]?.[select.value as ValidSelectValue]?.endpoint[currentMemberMode]);
                 generateFields(select.value as 'new' | 'existing');
             });
-            dynamicFields?.appendChild(select);
+            this.renderer.appendChild(dynamicFields, select);
             const label = endpointFieldMapNew[actionKeys]?.['existing' as ValidSelectValue]?.label[currentMemberMode][node.data.gender];
             localStorageManager.setItem('postEndpoint', endpointFieldMapNew[actionKeys]['existing' as ValidSelectValue]?.endpoint[currentMemberMode]);
-            const endpointLabel = document.getElementById('endpointLabel');
-            if (endpointLabel) endpointLabel.textContent = label ?? null;
+            const endpointLabel = this.elementRef.nativeElement.querySelector('#endpointLabel');
+            if (endpointLabel) {
+                this.renderer.setProperty(endpointLabel, 'textContent', label ?? null);
+            }
             generateFields('existing');
         } else {
             const option = (actionOptions.new ? 'new' : 'existing') as 'new' | 'existing';
             const label = endpointFieldMapNew[actionKeys][option]?.label[currentMemberMode][node.data.gender];
-            const endpointLabel = document.getElementById('endpointLabel');
-            if (endpointLabel) endpointLabel.textContent = label ?? null;
+            const endpointLabel = this.elementRef.nativeElement.querySelector('#endpointLabel');
+            if (endpointLabel) {
+                this.renderer.setProperty(endpointLabel, 'textContent', label ?? null);
+            }
             localStorageManager.setItem('postEndpoint', endpointFieldMapNew[actionKeys][option]?.endpoint[currentMemberMode]);
             generateFields(option);
         }

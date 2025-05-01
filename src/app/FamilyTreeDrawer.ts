@@ -4,6 +4,7 @@ import { CustomFlatData, DrawableNode, FamilyNode, genericActionTypes } from "./
 import { DataManager } from "./services/data-manager";
 import { nodeManagmentService } from "./services/node-managment-service";
 import { stringMax, stringMin } from "./utils/utils";
+import { ElementRef, Renderer2 } from "@angular/core";
 
 function calculatePositionChildParentPosition(x: number, nodeRadius: number, scale: number, gender: string) {
     const offset = 1.5
@@ -35,13 +36,6 @@ async function fetchNodeImage(nodeId: number, token?: string): Promise<string | 
         return null;
     }
 }
-
-
-
-
-
-
-
 
 
 
@@ -149,8 +143,12 @@ export class FamilyTreeDrawer {
     familyTreeId: number;
     nodeManager: DataManager;
     private nonFounderId
+    private renderer: Renderer2;
+    private elementRef: ElementRef;
 
-    constructor(ND: DataManager, familyTreeId: number, containerId: string, width: number, height: number, isPopUp: boolean, nonFounderId?: number) {
+    constructor(ND: DataManager, familyTreeId: number, containerId: string, width: number, height: number, isPopUp: boolean, nonFounderId: number | undefined, renderer: Renderer2,
+        elementRef: ElementRef
+    ) {
         this.nonFounderId = nonFounderId
         this.containerId = containerId
         this.width = width;
@@ -169,6 +167,8 @@ export class FamilyTreeDrawer {
 
         this.familyTreeId = familyTreeId
         this.nodeManager = ND;
+        this.renderer = renderer;
+        this.elementRef = elementRef;
         this.intialize()
     }
 
@@ -185,7 +185,7 @@ export class FamilyTreeDrawer {
                 }
                 tempRootId = founderNode?.id as number
                 this.nodeManager.setData(nodesArray)
-                if (!this.isPopUp) { this.formManager = new HtmlElementsManager(this.nodeManager, this.familyTreeId, tempRootId, this) }
+                if (!this.isPopUp) { this.formManager = new HtmlElementsManager(this.nodeManager, this.familyTreeId, tempRootId, this, this.renderer, this.elementRef) }
                 if (founderNode) {
                     this.fetchData(nodesArray, founderNode.id as number, true);
                 } else {
@@ -1697,7 +1697,7 @@ export class FamilyTreeDrawer {
         this.nodeDetailDisplayer()
     }
     createPopUp(familyNodeId: number) {
-        return new FamilyTreeDrawer(this.nodeManager, 1, '#treePopUp', 300, 300, true, familyNodeId)
+        return new FamilyTreeDrawer(this.nodeManager, 1, '#treePopUp', 300, 300, true, familyNodeId, this.renderer, this.elementRef)
     }
 }
 

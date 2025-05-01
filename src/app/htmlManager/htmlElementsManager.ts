@@ -6,33 +6,46 @@ import { TabManager } from "./TabManager";
 import { SuggestionManager } from "./SuggestionManager";
 import { ActionFormManager } from "./ActionFormManager";
 import { NodeModeManager } from "./NodeModeManager";
+import { ElementRef, Renderer2 } from "@angular/core";
 
 export class HtmlElementsManager {
     private treeDrawer: FamilyTreeDrawer;
     private familyTreeId: number;
     private rootNodeId: number;
     public nodeManager: DataManager;
-    // @ts-ignore
     private tabManager: TabManager;
     private suggestionManager: SuggestionManager;
     private actionFormManager: ActionFormManager;
     private nodeModeManager: NodeModeManager;
+    private renderer: Renderer2;
+    private elementRef: ElementRef;
 
-    constructor(nodeManager: DataManager, familyTreeId: number, rootNodeId: number, drawer: FamilyTreeDrawer) {
+    constructor(
+        nodeManager: DataManager,
+        familyTreeId: number,
+        rootNodeId: number,
+        drawer: FamilyTreeDrawer,
+        renderer: Renderer2,
+        elementRef: ElementRef
+    ) {
         this.treeDrawer = drawer;
         this.rootNodeId = rootNodeId;
         this.familyTreeId = familyTreeId;
         this.nodeManager = nodeManager;
+        this.renderer = renderer;
+        this.elementRef = elementRef;
 
-        this.tabManager = new TabManager(this, nodeManager, familyTreeId);
-        this.suggestionManager = new SuggestionManager(this, nodeManager, familyTreeId, drawer);
-        this.actionFormManager = new ActionFormManager(this, nodeManager, familyTreeId, drawer);
-        this.nodeModeManager = new NodeModeManager(this, nodeManager, familyTreeId, drawer);
+        this.tabManager = new TabManager(this, nodeManager, familyTreeId, this.renderer, this.elementRef);
+        this.suggestionManager = new SuggestionManager(this, nodeManager, familyTreeId, drawer, this.renderer, this.elementRef);
+        this.actionFormManager = new ActionFormManager(this, nodeManager, familyTreeId, drawer, this.renderer, this.elementRef);
+        this.nodeModeManager = new NodeModeManager(this, nodeManager, familyTreeId, drawer, this.renderer, this.elementRef);
 
-        const modeButton = document.getElementById('modeType');
-        modeButton?.addEventListener('click', () => {
-            this.treeDrawer.toggleModes();
-        });
+        const modeButton = this.elementRef.nativeElement.querySelector('#modeType');
+        if (modeButton) {
+            this.renderer.listen(modeButton, 'click', () => {
+                this.treeDrawer.toggleModes();
+            });
+        }
     }
 
     setRootNodeId(nodeId: number) {
@@ -40,23 +53,31 @@ export class HtmlElementsManager {
     }
 
     setModeType(text: string) {
-        const modeButton = document.getElementById('modeType');
-        if (modeButton) modeButton.textContent = text;
+        const modeButton = this.elementRef.nativeElement.querySelector('#modeType');
+        if (modeButton) {
+            this.renderer.setProperty(modeButton, 'textContent', text);
+        }
     }
 
     showTab(tab: string) {
-        const allTabElements = document.querySelectorAll('.tab');
-        allTabElements.forEach(tabEl => {
+        const allTabElements = this.elementRef.nativeElement.querySelectorAll('.tab');
+        allTabElements.forEach((tabEl: { id: string; }) => {
             const id = tabEl.id.replace('Tab', '');
-            const content = document.getElementById(`${id}Content`);
-            if (content) content.classList.add('hidden');
-            tabEl.classList.remove('active');
+            const content = this.elementRef.nativeElement.querySelector(`#${id}Content`);
+            if (content) {
+                this.renderer.addClass(content, 'hidden');
+            }
+            this.renderer.removeClass(tabEl, 'active');
         });
 
-        const selectedContent = document.getElementById(`${tab}Content`);
-        const selectedTab = document.getElementById(`${tab}Tab`);
-        if (selectedContent) selectedContent.classList.remove('hidden');
-        if (selectedTab) selectedTab.classList.add('active');
+        const selectedContent = this.elementRef.nativeElement.querySelector(`#${tab}Content`);
+        const selectedTab = this.elementRef.nativeElement.querySelector(`#${tab}Tab`);
+        if (selectedContent) {
+            this.renderer.removeClass(selectedContent, 'hidden');
+        }
+        if (selectedTab) {
+            this.renderer.addClass(selectedTab, 'active');
+        }
 
         if (tab === 'editSuggestions') {
             this.displaySuggestionUpdateEdits(this.rootNodeId);

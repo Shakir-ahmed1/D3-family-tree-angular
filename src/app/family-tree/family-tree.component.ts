@@ -1,5 +1,4 @@
-// family-tree.component.ts
-import { Component, AfterViewInit } from '@angular/core';
+import { Component, AfterViewInit, Renderer2, ElementRef } from '@angular/core';
 import { localStorageManager } from '../services/storage-manager';
 import { FamilyTreeDrawer } from '../FamilyTreeDrawer';
 import { DataManager } from '../services/data-manager';
@@ -11,15 +10,14 @@ import { DataManager } from '../services/data-manager';
   templateUrl: './family-tree.component.html',
   styleUrl: './family-tree.component.scss'
 })
-
-
 export class FamilyTreeComponent implements AfterViewInit {
   private drawer: FamilyTreeDrawer | undefined;
 
+  constructor(private renderer: Renderer2, private elementRef: ElementRef) {}
+
   ngAfterViewInit(): void {
     // USER 1
-    const bearerToken = `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwaG9uZSI6IisxMjM0NTY3ODkwMSIsImlhdCI6MTczNzI3MTkzOSwiZXhwIjoxODM3MzU4MzM5fQ.xyGMhsv6dcywwy7AImYvcFwxHWdvlAidvg-7M7ZeBB8`
-
+    const bearerToken = `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwaG9uZSI6IisxMjM0NTY3ODkwMSIsImlhdCI6MTczNzI3MTkzOSwiZXhwIjoxODM3MzU4MzM5fQ.xyGMhsv6dcywwy7AImYvcFwxHWdvlAidvg-7M7ZeBB8`;
 
     localStorageManager.setItem('bearerToken', bearerToken);
 
@@ -32,15 +30,18 @@ export class FamilyTreeComponent implements AfterViewInit {
       '#treeContainer',
       500,
       500,
-      false
+      false,
+      undefined,
+      this.renderer,
+      this.elementRef
     );
 
-    const sizeManagerForm = document.getElementById("sizeManager") as HTMLFormElement;
+    const sizeManagerForm = this.elementRef.nativeElement.querySelector('#sizeManager') as HTMLFormElement;
 
     if (sizeManagerForm) {
-      sizeManagerForm.addEventListener("submit", (event) => {
+      this.renderer.listen(sizeManagerForm, 'submit', (event) => {
         event.preventDefault();
-        const sizeInput = document.getElementById("size") as HTMLInputElement;
+        const sizeInput = this.elementRef.nativeElement.querySelector('#size') as HTMLInputElement;
         const size = parseInt(sizeInput.value, 10);
         this.drawer?.updateSVGSize(size);
       });
@@ -49,4 +50,3 @@ export class FamilyTreeComponent implements AfterViewInit {
     }
   }
 }
-
